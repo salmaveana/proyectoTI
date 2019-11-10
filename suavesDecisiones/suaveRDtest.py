@@ -7,9 +7,6 @@ import numpy as np
 import os.path
 from sklearn.model_selection import train_test_split
 
-def remove_last_element(arr):
-    return arr[np.arange(arr.size - 1)]
-
 class Aplicacion():
 
     #ventana inicial de la aplicación
@@ -29,58 +26,61 @@ class Aplicacion():
 
     #Interfaz para cargar archivo y seleccionar los atributos y el numero de vecinos a graficar
     def upFile(self,event=None):
-        self.filename = filedialog.askopenfilename()
+
+        self.filename = filedialog.askopenfilename() #funcion para seleccionar el archivo y variable para almacenar su path
         self.numAtb=IntVar() #variable que el almacena el primer atributo seleccionado
         self.numAtb2=IntVar() #variable que almacena el segundo atributo seleccionado
         self.k_vecinos=IntVar() #número de vecinos con el que el usuario desea suavizar
-        self.filas = IntVar()
-        self.numAtributos = IntVar()
-        self.numClases = IntVar()
+        self.filas = IntVar()# número de elementos o de filas en el datset
+        self.numAtributos = IntVar() #numero de atributos del dataset
+        self.numClases = IntVar()#número de clases del dataset
+
         self.raiz2 = Toplevel()
-        self.raiz2.geometry('500x300')
+        self.raiz2.geometry('600x300')
         self.raiz2.resizable(10, 10)
         self.raiz2.title('Mostrar el archivo de datos')
 
         with open(self.filename, "r") as f:
-           text = f.readlines()
+           text = f.readlines() #leemos las líneas del dataset
 
-           self.filas = text[0].strip()
-           self.numAtributos= text[1].strip()
-           self.numClases = text[2].strip()
-        self.archivo = os.path.basename(self.filename)
+           self.filas = text[0].strip() #obtenemos el número de elementos del dataset
+           self.numAtributos= text[1].strip()# obtenemos el número de atributos del datset
+           self.numClases = text[2].strip() # obtenemos el número de clases del dataset
+        self.archivo = os.path.basename(self.filename)#almacenamos el nombre del archivo del dataset no el path
 
-        self.etiq0 = Label(self.raiz2, text="Atributos a graficar ").grid(row= 0, column=2)
-        self.separ1 = Label(self.raiz2, text= " ").grid(row=1)
-        self.etiq1 = Label(self.raiz2, text="Atributo: ").grid(row=2, column= 0)
-        self.atributo1 = Entry(self.raiz2, textvariable=self.numAtb,width=8).grid(row=2,column=1)
+        #Creamos la interfaz para realizar todas las funciones necesarias de el proyecto
+        #self.separ3 = Label(self.raiz2, text=" ").grid(row=5)
+        self.mostrar1 = Label(self.raiz2, text="Nombre del dataset: ").grid(row=0, column=0)
+        self.mostrar01 = Label(self.raiz2, text=self.archivo).grid(row=0, column=1)
 
-        self.etiq2 = Label(self.raiz2, text="Atributo: ").grid(row=2, column=2)
-        self.atributo2 = Entry(self.raiz2, textvariable=self.numAtb2,width=8).grid(row=2, column=3)
+        self.mostar2 = Label(self.raiz2, text="Número de elementos: ").grid(row=1, column=0)
+        self.mostrar02 = Label(self.raiz2, text=self.filas).grid(row=1, column=1)
 
-        self.separ2 = Label(self.raiz2, text=" ").grid(row=3)
-        self.graficar = Button(self.raiz2,text ="Graficar", command = self.graficar).grid(row=4, column=1)
+        self.mostar3 = Label(self.raiz2, text="Número de Atributos: ").grid(row=2, column=0)
+        self.mostrar03 = Label(self.raiz2, text=self.numAtributos).grid(row=2, column=1)
 
-        self.etiq3 = Label(self.raiz2, text="#Vecinos").grid(row=4, column=2)
-        self.numVecinos = Entry(self.raiz2, textvariable=self.k_vecinos,width=8).grid(row=4, column=3)
-        self.suavizar = Button(self.raiz2,text ="Suavizar", command = self.suavizar).grid(row=4, column=4)
+        self.mostar4 = Label(self.raiz2, text="Número de Clases: ").grid(row=3, column=0)
+        self.mostrar04 = Label(self.raiz2, text=self.numClases).grid(row=3, column=1)
 
-        self.separ3 = Label(self.raiz2, text=" ").grid(row=5)
-        self.mostrar1= Label(self.raiz2,text="Nombre del dataset: ").grid(row=6, column=1)
-        self.mostrar01= Label(self.raiz2,text=self.archivo).grid(row=6, column=2)
-
-        self.mostar2 = Label(self.raiz2, text="Número de elementos: ").grid(row=7, column=1)
-        self.mostrar02= Label(self.raiz2,text=self.filas).grid(row=7, column=2)
-
-        self.mostar3= Label(self.raiz2, text="Número de Atributos: ").grid(row=8, column=1)
-        self.mostrar03= Label(self.raiz2,text=self.numAtributos).grid(row=8, column=2)
-
-        self.mostar4= Label(self.raiz2, text="Número de Clases: ").grid(row=9, column=1)
-        self.mostrar04= Label(self.raiz2,text=self.numClases).grid(row=9, column=2)
-
-        self.separ4 = Label(self.raiz2, text=" ").grid(row=10)
-        self.partition = Button(self.raiz2,text ="Partición", command = self.separar_datos  ).grid(row=11, column=2)
+        self.separ3 = Label(self.raiz2, text=" ").grid(row=2,column=3)
+        self.partition = Button(self.raiz2, text="Partición", command=self.separar_datos).grid(row=2, column=2)
+        self.separ4 = Label(self.raiz2, text=" ").grid(row=4)
 
 
+        self.etiq0 = Label(self.raiz2, text="Atributos a graficar ").grid(row= 5, column=2)
+        self.separ1 = Label(self.raiz2, text= " ").grid(row=6)
+        self.etiq1 = Label(self.raiz2, text="Atributo: ").grid(row=7, column= 0)
+        self.atributo1 = Entry(self.raiz2, textvariable=self.numAtb,width=8).grid(row=7,column=1)
+
+        self.etiq2 = Label(self.raiz2, text="Atributo: ").grid(row=7, column=2)
+        self.atributo2 = Entry(self.raiz2, textvariable=self.numAtb2,width=8).grid(row=7, column=3)
+
+        self.separ2 = Label(self.raiz2, text=" ").grid(row=8)
+        self.graficar = Button(self.raiz2,text ="Graficar", command = self.graficar).grid(row=7, column=4)
+
+        self.etiq3 = Label(self.raiz2, text="#Vecinos").grid(row=8, column=2)
+        self.numVecinos = Entry(self.raiz2, textvariable=self.k_vecinos,width=8).grid(row=8, column=3)
+        self.suavizar = Button(self.raiz2,text ="Suavizar", command = self.suavizar).grid(row=8, column=4)
 
         self.raiz2.transient(master=self.raiz)
         self.raiz2.grab_set()
@@ -89,7 +89,6 @@ class Aplicacion():
     def separar_datos(self):
         alldata = np.loadtxt(self.filename, skiprows=3, delimiter=',')
 
-        print(alldata)
         clases = [int(row[-1]) for row in alldata] #creamos un arreglo que guarda todas las clases de cada fila
 
         data = []
@@ -102,11 +101,25 @@ class Aplicacion():
         #se quita porque hago particion manual
         (trainX, testX, trainY, testY) = train_test_split(np.asarray(data), clases, test_size=0.25)
 
+        self.train = []
+        for i, row in enumerate(trainX, start=0):
+            self.train.append(np.append(row, trainY[i]))
+
+        self.test = []
+        for i, row in enumerate(testX, start=0):
+            self.test.append(np.append(row, testY[i]))
+
+        self.mostarx = Label(self.raiz2, text="Train: ").grid(row=1, column=3)
+        self.mostrar0x = Label(self.raiz2, text=len(self.train)).grid(row=1, column=4)
+
+        self.mostary = Label(self.raiz2, text="Test: ").grid(row=2, column=3)
+        self.mostrar0y = Label(self.raiz2, text=len(self.test)).grid(row=2, column=4)
+
 
     #funcion que nos permite graficar el dataset
     def graficar(self):
 
-        with open(self.filename, "r") as f:
+        """with open(self.filename, "r") as f:
            text = f.readlines()
 
            elementos = text[0].strip()
@@ -114,8 +127,8 @@ class Aplicacion():
            clase = text[2].strip()
 
            data = np.loadtxt(self.filename, skiprows=3, delimiter=',')
-           nombre = os.path.basename(self.filename)
-
+           nombre = os.path.basename(self.filename)"""
+        train = np.asarray(self.train)
         atb1 = self.numAtb.get()
         atb2 = self.numAtb2.get()
 
@@ -124,11 +137,11 @@ class Aplicacion():
 
         plt.figure()
 
-        for i in range(int(clase)):
-           for j in range(int(elementos)):
-              if data[j][int(atributos)] == i:
-                 lista_graf1.append(data[j][atb1])
-                 lista_graf2.append(data[j][atb2])
+        for i in range(int(self.numClases)):
+           for j in range(len(train)):
+              if train[j][int(self.numAtributos)] == i:
+                 lista_graf1.append(train[j][atb1])
+                 lista_graf2.append(train[j][atb2])
            plt.scatter(lista_graf1, lista_graf2, marker='x')
            lista_graf1.clear()
            lista_graf2.clear()
@@ -136,22 +149,18 @@ class Aplicacion():
         print("Atributo seleccionado:  ",self.numAtb.get())
         print("Atributo seleccionado 2:  ",self.numAtb2.get())
 
-        plt.title("Graficando Dataset {}". format(nombre))
+        plt.title("Graficando Dataset {}". format(self.archivo))
         plt.xlabel("Atributo {}".format(atb1))
         plt.ylabel("Atributo {}".format(atb2))
         plt.show()
 
     #función que se invoca al presionar el botón suavizar y llama a ENN para ejecutar el suavizado
     def suavizar(self):
-        file = self.filename
         atb1 = self.numAtb.get()
         atb2 = self.numAtb2.get()
         numk = self.k_vecinos.get()
-
-        print("atb1: ", atb1)
-        print("atb2", atb2)
-        print("numero de vecinos ",numk)
-        suave_data = self.ENN(file,atb1,atb2,numk)
+        train_suave = np.asarray(self.train)
+        suave_data = self.ENN(train_suave,atb1,atb2,numk)
 
 
     def obtener_vecinos(self,data_train, fila_prueba, k_vecinos):
@@ -170,29 +179,27 @@ class Aplicacion():
     def clasificar(self, data_train, fila_prueba, num_vecinos):
         neighbors = self.obtener_vecinos(data_train, fila_prueba, num_vecinos)
         vecinos_clase = [row[-1] for row in neighbors] #creamos una lista que extrae solo las clases de los vecinos mas cercanos
-        #print("valores de salida ",vecinos_clase)
         return vecinos_clase
 
-    def ENN(self,file,atb1,atb2,numk):
+    def ENN(self,data,atb1,atb2,numk):
 
         suave_lista = []
         removidos = []
 
-        with open(file, "r") as f:
+        """""with open(file, "r") as f:
             text = f.readlines()
 
             num_elementos = text[0].strip()
             num_atributos = text[1].strip()
             num_clases = text[2].strip()
 
-        dataset = np.loadtxt(file, skiprows=3, delimiter=',')
+        dataset = np.loadtxt(file, skiprows=3, delimiter=',')"""
 
-        for fila in dataset:
+        for fila in data:
 
-            vecinos = self.clasificar(dataset,fila,numk)
+            vecinos = self.clasificar(data,fila,numk)
             counter = 0
             mas_votado = vecinos[0]
-            #print("Valor de vecinos [0] ",mas_votado)
 
             #realizamos la votación
             for i in vecinos:
@@ -204,7 +211,7 @@ class Aplicacion():
             #numi= int(fila[int(num_atributos)])
             #print("clase predecida: ", num)
             #print("clase real ",numi)
-            if int(mas_votado) == int(fila[int(num_atributos)]):
+            if int(mas_votado) == int(fila[int(self.numAtributos)]):
                 suave_lista.append(fila)
             else:
                 removidos.append(fila)
@@ -213,9 +220,9 @@ class Aplicacion():
         list2 = []
 
         # graficando el nuevo conjunto suavizado
-        for i in range(int(num_clases)):
+        for i in range(int(self.numClases)):
             for fila in suave_lista:
-                if fila[int(num_atributos)] == i:
+                if fila[int(self.numAtributos)] == i:
                     list1.append(fila[int(atb1)])
                     list2.append(fila[int(atb2)])
 
@@ -231,6 +238,10 @@ class Aplicacion():
 
         print("Removidos: ",len(removidos))
         return suave_lista
+
+
+def remove_last_element(arr):
+    return arr[np.arange(arr.size - 1)]
 
 
 #Calcula la distancia ecuclidiana entre dos vectores
