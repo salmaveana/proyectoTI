@@ -6,13 +6,19 @@ from tkinter import ttk
 import numpy as np
 import os.path
 from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report,confusion_matrix
+from sklearn import metrics
 
 class Aplicacion():
 
-    #ventana inicial de la aplicación
+    #Ventana inicial de la aplicación para cargar el archivo del dataset
     def __init__(self):
+        #Creamos la ventana
         self.raiz = Tk()
-        self.raiz.title("Suavizando fornteras")
+        self.raiz.title("Suavizando fronteras")
         self.raiz.geometry('200x200')
         self.raiz.resizable(10, 10)
 
@@ -24,7 +30,8 @@ class Aplicacion():
         self.raiz.mainloop()
 
 
-    #Interfaz para cargar archivo y seleccionar los atributos y el numero de vecinos a graficar
+    #Interfaz para seleccionar el archivo
+    #Permite seleccionar los atributos y el número de vecinos a graficar
     def upFile(self,event=None):
 
         self.filename = filedialog.askopenfilename() #funcion para seleccionar el archivo y variable para almacenar su path
@@ -34,9 +41,11 @@ class Aplicacion():
         self.filas = IntVar()# número de elementos o de filas en el datset
         self.numAtributos = IntVar() #numero de atributos del dataset
         self.numClases = IntVar()#número de clases del dataset
+        self.vecinos_knn=IntVar() #número de vecinos para el clasificador KNN
+
 
         self.raiz2 = Toplevel()
-        self.raiz2.geometry('600x300')
+        self.raiz2.geometry('700x300')
         self.raiz2.resizable(10, 10)
         self.raiz2.title('Mostrar el archivo de datos')
 
@@ -82,11 +91,18 @@ class Aplicacion():
         self.numVecinos = Entry(self.raiz2, textvariable=self.k_vecinos,width=8).grid(row=8, column=3)
         self.suavizar = Button(self.raiz2,text ="Suavizar", command = self.suavizar).grid(row=8, column=4)
 
+        self.separ2 = Label(self.raiz2, text=" ").grid(row=9)
+        self.etiq3 = Label(self.raiz2, text="K vecinos ").grid(row=10, column=0)
+        self.vecinos_KNN = Entry(self.raiz2, textvariable=self.vecinos_knn,width=8).grid(row=10, column=1)
+        self.clasificadorKNN = Button(self.raiz2, text=" Clasificador KNN ", command=self.knn_clasificador).grid(row=11, column=1)
+        self.multilayer_rna = Button(self.raiz2, text="Multilayer Perceptron", command=self.invocar_MP).grid(row=11,column=3)
+
         self.raiz2.transient(master=self.raiz)
         self.raiz2.grab_set()
         self.raiz.wait_window(self.raiz2)
 
     def separar_datos(self):
+
         alldata = np.loadtxt(self.filename, skiprows=3, delimiter=',')
 
         clases = [int(row[-1]) for row in alldata] #creamos un arreglo que guarda todas las clases de cada fila
@@ -101,10 +117,13 @@ class Aplicacion():
         #se quita porque hago particion manual
         (trainX, testX, trainY, testY) = train_test_split(np.asarray(data), clases, test_size=0.25)
 
+        #unimos el conjunto de entrenamiento con sus respectivas etiquetas de clase
+        #para su posterior suavizado y entrenamiento
         self.train = []
         for i, row in enumerate(trainX, start=0):
             self.train.append(np.append(row, trainY[i]))
 
+        #unimos el conjunto test con sus respectivas etiquetas
         self.test = []
         for i, row in enumerate(testX, start=0):
             self.test.append(np.append(row, testY[i]))
@@ -115,19 +134,16 @@ class Aplicacion():
         self.mostary = Label(self.raiz2, text="Test: ").grid(row=2, column=3)
         self.mostrar0y = Label(self.raiz2, text=len(self.test)).grid(row=2, column=4)
 
+        self.X_train = trainX
+        self.Y_train = trainY
+        self.x_test = testX
+        self.y_test = testY
+
+
 
     #funcion que nos permite graficar el dataset
     def graficar(self):
 
-        """with open(self.filename, "r") as f:
-           text = f.readlines()
-
-           elementos = text[0].strip()
-           atributos = text[1].strip()
-           clase = text[2].strip()
-
-           data = np.loadtxt(self.filename, skiprows=3, delimiter=',')
-           nombre = os.path.basename(self.filename)"""
         train = np.asarray(self.train)
         atb1 = self.numAtb.get()
         atb2 = self.numAtb2.get()
@@ -146,8 +162,8 @@ class Aplicacion():
            lista_graf1.clear()
            lista_graf2.clear()
 
-        print("Atributo seleccionado:  ",self.numAtb.get())
-        print("Atributo seleccionado 2:  ",self.numAtb2.get())
+        #print("Atributo seleccionado:  ",self.numAtb.get())
+        #print("Atributo seleccionado 2:  ",self.numAtb2.get())
 
         plt.title("Graficando Dataset {}". format(self.archivo))
         plt.xlabel("Atributo {}".format(atb1))
@@ -160,7 +176,7 @@ class Aplicacion():
         atb2 = self.numAtb2.get()
         numk = self.k_vecinos.get()
         train_suave = np.asarray(self.train)
-        suave_data = self.ENN(train_suave,atb1,atb2,numk)
+        self.suave_data = self.ENN(train_suave,atb1,atb2,numk)
 
 
     def obtener_vecinos(self,data_train, fila_prueba, k_vecinos):
@@ -185,15 +201,6 @@ class Aplicacion():
 
         suave_lista = []
         removidos = []
-
-        """""with open(file, "r") as f:
-            text = f.readlines()
-
-            num_elementos = text[0].strip()
-            num_atributos = text[1].strip()
-            num_clases = text[2].strip()
-
-        dataset = np.loadtxt(file, skiprows=3, delimiter=',')"""
 
         for fila in data:
 
@@ -239,6 +246,64 @@ class Aplicacion():
         print("Removidos: ",len(removidos))
         return suave_lista
 
+    def invocar_MP(self):
+
+        suaves_elementos = []
+        suaves_etiquetas = [int(row[-1]) for row in  self.suave_data]  # creamos un arreglo que guarda todas las clases de cada fila
+        for row in self.suave_data:
+            suaves_elementos.append(remove_last_element(row))
+
+        np.asarray(suaves_elementos)
+        np.asarray(suaves_etiquetas)
+
+        momentum = 0.9
+        learning_rate =.1
+        max_itera = 150
+        nodos = 15
+
+        #entrenamos la red con el cojunto sin suavizar y el test
+        print("----- Multilayer Perceptron ----- Conjunto original")
+        multi_layer_perceptron(self.X_train,self.x_test,self.Y_train,self.y_test, momentum, learning_rate, max_itera,nodos)
+
+        #entrenamos la red con el conjunto suavizado y el mimsmo conjunto test
+        print("----- Multilayer Perceptron ----- Conjunto suavizado")
+        multi_layer_perceptron(suaves_elementos,self.x_test,suaves_etiquetas,self.y_test,momentum, learning_rate, max_itera,nodos)
+
+
+    def knn_clasificador(self):
+
+        etiquetas= []
+        n_vecinos = self.vecinos_knn.get()
+
+        i = 0
+        while i < int(self.numClases):
+            etiquetas.append(int(i))
+            i = i+1
+
+        print("Etiquetas", etiquetas)
+
+        suaves_elementos = []
+        suaves_etiquetas = [int(row[-1]) for row in self.suave_data]  # creamos un arreglo que guarda todas las clases de cada fila
+        for row in self.suave_data:
+            suaves_elementos.append(remove_last_element(row))
+
+        suaves_elementos = np.asarray(suaves_elementos)
+        suaves_etiquetas = np.asarray(suaves_etiquetas)
+
+        # entrenando knn con el conjunto sin suavizado
+        print("      KNN --- Conjunto original con ", n_vecinos, " vecinos")
+        model = KNeighborsClassifier(n_neighbors=n_vecinos)
+        model.fit(self.X_train, self.Y_train)
+        print(classification_report(self.y_test, model.predict(self.x_test), labels=etiquetas))
+
+        #entrenando knn con el conjunto suavizado
+        print("      KNN --- Conjunto suavizado con ", n_vecinos, "vecinos")
+        mod2 = KNeighborsClassifier(n_neighbors=n_vecinos)
+        mod2.fit(suaves_elementos, suaves_etiquetas)
+        print(classification_report(self.y_test, mod2.predict(self.x_test), labels = etiquetas))
+
+
+
 
 def remove_last_element(arr):
     return arr[np.arange(arr.size - 1)]
@@ -252,6 +317,27 @@ def distacia_euclidiana(row1, row2):
     for i in range(len(aux1) - 1):
         distance += (aux1[i] - aux2[i]) ** 2
     return sqrt(distance)
+
+def multi_layer_perceptron(X_train, x_test, Y_train, y_test, momentum, learning_rate, max_itera,nodos):
+    scaler = StandardScaler()
+    # Fit only to the training data
+    scaler.fit(X_train)
+    # Now apply the transformations to the data:
+    X_train = scaler.transform(X_train)
+    X_test = scaler.transform(x_test)
+
+    mlp = MLPClassifier(activation='logistic', solver='sgd', hidden_layer_sizes= (nodos),max_iter= max_itera ,momentum=momentum,
+                        learning_rate='constant', learning_rate_init=learning_rate)
+
+    mlp.fit(X_train, Y_train)
+
+    predictions = mlp.predict(X_test)
+
+    print(classification_report(y_test, predictions))
+    print("Matriz de confusión ", confusion_matrix(y_test, predictions))
+
+    return metrics.accuracy_score(y_test, predictions)
+
 
 def main():
     mi_app = Aplicacion()
