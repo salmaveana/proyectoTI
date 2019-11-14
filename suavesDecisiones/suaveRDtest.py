@@ -1,15 +1,16 @@
 from tkinter import Tk, Label, Button, StringVar, filedialog
-import matplotlib.pyplot as plt
-from math import sqrt
+import matplotlib.pyplot as plt #biblioteca para graficar
+from math import sqrt #biblioteca para calcular la raiz
 from tkinter import *
-from tkinter import ttk
-import numpy as np
-import os.path
-from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report,confusion_matrix
+from tkinter import ttk #cargamos la biblioteca de la interfaz
+import numpy as np # bibloiteca para hacer operaciones propia de python
+import os.path # biblioteca para extraer el path y el nomre del archivo
+from sklearn.model_selection import train_test_split #biblioteca para dividir en conjunto de entrenamiento y el de prueba
+from sklearn.neural_network import MLPClassifier #biblioteca del clasificador multilayer perceptron
+from tkinter import messagebox # biblioiteca para mostrar mensajes de error sin utilizar
+from sklearn.preprocessing import StandardScaler # bibbloiteca para normalizar los datos para el clasificador MLP
+from sklearn.neighbors import KNeighborsClassifier # biblioteca del calsificador KNN
+from sklearn.metrics import classification_report,confusion_matrix # biblioteca para mostrar la precision del calsificador
 from sklearn import metrics
 
 class Aplicacion():
@@ -43,13 +44,13 @@ class Aplicacion():
         self.numClases = IntVar()#número de clases del dataset
         self.vecinos_knn=IntVar() #número de vecinos para el clasificador KNN
 
-
+        #parametros de la vantana principal
         self.raiz2 = Toplevel()
-        self.raiz2.geometry('700x300')
+        self.raiz2.geometry('700x400')
         self.raiz2.resizable(10, 10)
         self.raiz2.title('Mostrar el archivo de datos')
 
-        with open(self.filename, "r") as f:
+        with open(self.filename, "r") as f: # funcion para abrir el archivo
            text = f.readlines() #leemos las líneas del dataset
 
            self.filas = text[0].strip() #obtenemos el número de elementos del dataset
@@ -57,8 +58,8 @@ class Aplicacion():
            self.numClases = text[2].strip() # obtenemos el número de clases del dataset
         self.archivo = os.path.basename(self.filename)#almacenamos el nombre del archivo del dataset no el path
 
-        #Creamos la interfaz para realizar todas las funciones necesarias de el proyecto
-        #self.separ3 = Label(self.raiz2, text=" ").grid(row=5)
+        #Creamos la interfaz  con sus elementos como los botones, los entry, etc.
+        #para realizar todas las funciones necesarias de el proyecto
         self.mostrar1 = Label(self.raiz2, text="Nombre del dataset: ").grid(row=0, column=0)
         self.mostrar01 = Label(self.raiz2, text=self.archivo).grid(row=0, column=1)
 
@@ -71,7 +72,7 @@ class Aplicacion():
         self.mostar4 = Label(self.raiz2, text="Número de Clases: ").grid(row=3, column=0)
         self.mostrar04 = Label(self.raiz2, text=self.numClases).grid(row=3, column=1)
 
-        self.separ3 = Label(self.raiz2, text=" ").grid(row=2,column=3)
+        self.separ5 = Label(self.raiz2, text=" ").grid(row=2,column=3)
         self.partition = Button(self.raiz2, text="Partición", command=self.separar_datos).grid(row=2, column=2)
         self.separ4 = Label(self.raiz2, text=" ").grid(row=4)
 
@@ -84,41 +85,47 @@ class Aplicacion():
         self.etiq2 = Label(self.raiz2, text="Atributo: ").grid(row=7, column=2)
         self.atributo2 = Entry(self.raiz2, textvariable=self.numAtb2,width=8).grid(row=7, column=3)
 
-        self.separ2 = Label(self.raiz2, text=" ").grid(row=8)
+        self.separ3 = Label(self.raiz2, text=" ").grid(row=8)
         self.graficar = Button(self.raiz2,text ="Graficar", command = self.graficar).grid(row=7, column=4)
 
-        self.etiq3 = Label(self.raiz2, text="#Vecinos").grid(row=8, column=2)
-        self.numVecinos = Entry(self.raiz2, textvariable=self.k_vecinos,width=8).grid(row=8, column=3)
-        self.suavizar = Button(self.raiz2,text ="Suavizar", command = self.suavizar).grid(row=8, column=4)
+        self.separ6 = Label(self.raiz2, text=" ").grid(row=8)
+        self.etiq7 = Label(self.raiz2, text="#Vecinos").grid(row=9, column=2)
+        self.numVecinos = Entry(self.raiz2, textvariable=self.k_vecinos,width=8).grid(row=9, column=3)
+        self.suavizar = Button(self.raiz2,text ="Suavizar", command = self.suavizar).grid(row=9, column=4)
 
-        self.separ2 = Label(self.raiz2, text=" ").grid(row=9)
-        self.etiq3 = Label(self.raiz2, text="K vecinos ").grid(row=10, column=0)
-        self.vecinos_KNN = Entry(self.raiz2, textvariable=self.vecinos_knn,width=8).grid(row=10, column=1)
-        self.clasificadorKNN = Button(self.raiz2, text=" Clasificador KNN ", command=self.knn_clasificador).grid(row=11, column=1)
-        self.multilayer_rna = Button(self.raiz2, text="Multilayer Perceptron", command=self.invocar_MP).grid(row=11,column=3)
+        self.separ2 = Label(self.raiz2, text=" ").grid(row=10)
+        self.etiq3 = Label(self.raiz2, text="K vecinos ").grid(row=11, column=0)
+        self.vecinos_KNN = Entry(self.raiz2, textvariable=self.vecinos_knn,width=8).grid(row=11, column=1)
+        self.clasificadorKNN = Button(self.raiz2, text=" Clasificador KNN ", command=self.knn_clasificador).grid(row=12, column=1)
+        self.multilayer_rna = Button(self.raiz2, text="Multilayer Perceptron", command=self.invocar_MP).grid(row=12,column=3)
 
         self.raiz2.transient(master=self.raiz)
         self.raiz2.grab_set()
         self.raiz.wait_window(self.raiz2)
 
+    #funcion para separ el conjunto original en conjunto de entrenamiento y conjunto de prueba
     def separar_datos(self):
 
-        alldata = np.loadtxt(self.filename, skiprows=3, delimiter=',')
+        alldata = np.loadtxt(self.filename, skiprows=3, delimiter=',') #cargamos el archivo de texto
 
-        clases = [int(row[-1]) for row in alldata] #creamos un arreglo que guarda todas las clases de cada fila
+        #creamos dos arreglos que nos van a permitir separ a los elementos de sus etiquetas de clase
+        #para posteriormente obtener los conjunto de prueba y entrenamiento
+        #creamos un arreglo que guarda unicamente todas las clases de cada elemento del conjunto completo
+        clases = [int(row[-1]) for row in alldata]
 
+        #creamos otro arreglo donde almacenamos cada elemento con sus atributos pero sin la clase
         data = []
         for row in alldata:
             data.append(remove_last_element(row))
 
-        # partition the data into training and testing splits using 75% of
-        # the data for training and the remaining 25% for testing
+        # diviendo el dataset en entrenamiento y prueba  usando  75% para el conjunto de entrenamiento
+        # y el 25% restante para el de prueba
         #randomstate = n permite que siempre tengas el mismo conjunto
         #se quita porque hago particion manual
         (trainX, testX, trainY, testY) = train_test_split(np.asarray(data), clases, test_size=0.25)
 
         #unimos el conjunto de entrenamiento con sus respectivas etiquetas de clase
-        #para su posterior suavizado y entrenamiento
+        #es necesario para su posterior  procesamiento de suavizado y entrenamiento
         self.train = []
         for i, row in enumerate(trainX, start=0):
             self.train.append(np.append(row, trainY[i]))
@@ -128,9 +135,11 @@ class Aplicacion():
         for i, row in enumerate(testX, start=0):
             self.test.append(np.append(row, testY[i]))
 
+        #mostramos en la interfaz principal cuantos datos quedaron en el conjunto de entrenamiento
         self.mostarx = Label(self.raiz2, text="Train: ").grid(row=1, column=3)
         self.mostrar0x = Label(self.raiz2, text=len(self.train)).grid(row=1, column=4)
 
+        # mostramos en la interfaz principal cuantos datos quedaron en el conjunto de prueba
         self.mostary = Label(self.raiz2, text="Test: ").grid(row=2, column=3)
         self.mostrar0y = Label(self.raiz2, text=len(self.test)).grid(row=2, column=4)
 
@@ -144,13 +153,17 @@ class Aplicacion():
     #funcion que nos permite graficar el dataset
     def graficar(self):
 
-        train = np.asarray(self.train)
+        train = np.asarray(self.train) # convertimos el conjunto de entrenamiento en un arreglo numpy
+
+        # asignamos de manera local el atributo que selleciono el usuario a graficar
         atb1 = self.numAtb.get()
         atb2 = self.numAtb2.get()
 
+        #creamos dos listas para graficar
         lista_graf1 = []
         lista_graf2 = []
 
+        #graficamos el data train
         plt.figure()
 
         for i in range(int(self.numClases)):
@@ -162,31 +175,33 @@ class Aplicacion():
            lista_graf1.clear()
            lista_graf2.clear()
 
-        #print("Atributo seleccionado:  ",self.numAtb.get())
-        #print("Atributo seleccionado 2:  ",self.numAtb2.get())
-
+        #Etiquetas de la gráfica para saber que se está graficando
         plt.title("Graficando Dataset {}". format(self.archivo))
         plt.xlabel("Atributo {}".format(atb1))
         plt.ylabel("Atributo {}".format(atb2))
         plt.show()
 
+
     #función que se invoca al presionar el botón suavizar y llama a ENN para ejecutar el suavizado
     def suavizar(self):
         atb1 = self.numAtb.get()
         atb2 = self.numAtb2.get()
-        numk = self.k_vecinos.get()
-        train_suave = np.asarray(self.train)
-        self.suave_data = self.ENN(train_suave,atb1,atb2,numk)
+        numk = self.k_vecinos.get() #numero de vecinnos con los que se desea suavizar
+        #convertimos el conjunto de entrenamiento en un arreglo numpy
+        train_original = np.asarray(self.train)
+        # se llama el algoritmo ENN y se pasan los parámetros necesarios,
+        # retorna el conjunto suavizado
+        self.suave_data = self.ENN(train_original,atb1,atb2,numk)
 
-
+    #funcion que obtiene los vecinos más cercanos de un elemento en específico
     def obtener_vecinos(self,data_train, fila_prueba, k_vecinos):
-        distances = list()
+        distances = list() # arreglo que almacena las distancias del elemento contra el resto de los elementos del conjunto
         for train_row in data_train:
             dist = distacia_euclidiana(fila_prueba, train_row)
             distances.append((train_row, dist)) #almacena la fila y la distancia de esa fila a la fila de prueba
         distances.sort(key=lambda tup: tup[1]) #ordena los filas tomando en cuenta el valor de la distancia para obtener las más cercanas
-        neighbors = list()
 
+        neighbors = list() #lista que almacena a los k vecinos más cercanos
         for i in range(k_vecinos):
             neighbors.append(distances[i][0])
         return neighbors #retorna completas (con su clase) las k filas más cercanas
@@ -202,22 +217,24 @@ class Aplicacion():
         suave_lista = []
         removidos = []
 
+        #por cada elemento en el conjunto se buscan sus vecinos más cercanos y se compara las clases de sus vecinos con la de el mismo
+        #para revisar si se encuentra en una zona fronteriza y si está traslapado con otras instancias
         for fila in data:
 
             vecinos = self.clasificar(data,fila,numk)
             counter = 0
             mas_votado = vecinos[0]
 
-            #realizamos la votación
+            #realizamos la votación para decidir si el elemento es romovido del conjunto
             for i in vecinos:
                 votacion = vecinos.count(i)
                 if votacion > counter:
                    counter = votacion
                    mas_votado = i
 
-            #numi= int(fila[int(num_atributos)])
-            #print("clase predecida: ", num)
-            #print("clase real ",numi)
+
+            #si la clase predominate es igual al verdadero valor del elemento se guarda
+            #de lo contrario se asigna a la lista de elmentos removidos
             if int(mas_votado) == int(fila[int(self.numAtributos)]):
                 suave_lista.append(fila)
             else:
@@ -253,13 +270,14 @@ class Aplicacion():
         for row in self.suave_data:
             suaves_elementos.append(remove_last_element(row))
 
+        #convertimos los arreglos a arreglos numpy
         np.asarray(suaves_elementos)
         np.asarray(suaves_etiquetas)
 
         momentum = 0.9
         learning_rate =.1
         max_itera = 150
-        nodos = 15
+        nodos = 13 # específico para seg-data.txt
 
         #entrenamos la red con el cojunto sin suavizar y el test
         print("----- Multilayer Perceptron ----- Conjunto original")
@@ -304,7 +322,8 @@ class Aplicacion():
 
 
 
-
+# funcion que nos ayuda a eliminar el último elmento (clase) de cada fila del dataset
+# para dejar solo los filas con sus atributos
 def remove_last_element(arr):
     return arr[np.arange(arr.size - 1)]
 
