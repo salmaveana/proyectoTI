@@ -7,7 +7,6 @@ import numpy as np # bibloiteca para hacer operaciones propia de python
 import os.path # biblioteca para extraer el path y el nomre del archivo
 from sklearn.model_selection import train_test_split #biblioteca para dividir en conjunto de entrenamiento y el de prueba
 from sklearn.neural_network import MLPClassifier #biblioteca del clasificador multilayer perceptron
-from tkinter import messagebox # biblioiteca para mostrar mensajes de error sin utilizar
 from sklearn.preprocessing import StandardScaler # bibbloiteca para normalizar los datos para el clasificador MLP
 from sklearn.neighbors import KNeighborsClassifier # biblioteca del calsificador KNN
 from sklearn.metrics import classification_report,confusion_matrix # biblioteca para mostrar la precision del calsificador
@@ -263,10 +262,13 @@ class Aplicacion():
         print("Removidos: ",len(removidos))
         return suave_lista
 
+    #en esta funcion invocamos al clasificador MLP y configuramos los parametros necesarios
     def invocar_MP(self):
 
+        # creamos un arreglo que guarda todas las clases de cada fila del nuevo conjunto suavizado
+        suaves_etiquetas = [int(row[-1]) for row in  self.suave_data]
+        # creamos un arreglo que guarda todas las clases de cada fila del nuevo conjunto suavizado
         suaves_elementos = []
-        suaves_etiquetas = [int(row[-1]) for row in  self.suave_data]  # creamos un arreglo que guarda todas las clases de cada fila
         for row in self.suave_data:
             suaves_elementos.append(remove_last_element(row))
 
@@ -288,27 +290,31 @@ class Aplicacion():
         multi_layer_perceptron(suaves_elementos,self.x_test,suaves_etiquetas,self.y_test,momentum, learning_rate, max_itera,nodos)
 
 
+    #clasificador KNN que utiliza por defecto la distancia ecuclidiana a menos que se indique lo contrario
     def knn_clasificador(self):
 
         etiquetas= []
-        n_vecinos = self.vecinos_knn.get()
+        n_vecinos = self.vecinos_knn.get() #numero de vecinos con los que se quiere clasificar
 
+        #se crea un arreglo para mostrar el numero de clases en el reporte
         i = 0
         while i < int(self.numClases):
             etiquetas.append(int(i))
             i = i+1
 
-        print("Etiquetas", etiquetas)
+        # creamos un arreglo que guarda todas las clases de cada fila del nuevo conjunto suavizado
+        suaves_etiquetas = [int(row[-1]) for row in self.suave_data]
 
+        # creamos un arreglo que guarda todos los atributos de cada fila del nuevo conjunto suavizado
         suaves_elementos = []
-        suaves_etiquetas = [int(row[-1]) for row in self.suave_data]  # creamos un arreglo que guarda todas las clases de cada fila
         for row in self.suave_data:
             suaves_elementos.append(remove_last_element(row))
 
+        #los convertimos a arreglos numpy para su procesamiento
         suaves_elementos = np.asarray(suaves_elementos)
         suaves_etiquetas = np.asarray(suaves_etiquetas)
 
-        # entrenando knn con el conjunto sin suavizado
+        # entrenando knn con el conjunto sin suavizar
         print("      KNN --- Conjunto original con ", n_vecinos, " vecinos")
         model = KNeighborsClassifier(n_neighbors=n_vecinos)
         model.fit(self.X_train, self.Y_train)
@@ -337,11 +343,14 @@ def distacia_euclidiana(row1, row2):
         distance += (aux1[i] - aux2[i]) ** 2
     return sqrt(distance)
 
+#clasificador MLP
 def multi_layer_perceptron(X_train, x_test, Y_train, y_test, momentum, learning_rate, max_itera,nodos):
     scaler = StandardScaler()
-    # Fit only to the training data
+
+    # Ajustarse sólo a los datos de entrenamiento
     scaler.fit(X_train)
-    # Now apply the transformations to the data:
+
+    # Ahora aplique las transformaciones a los datos:
     X_train = scaler.transform(X_train)
     X_test = scaler.transform(x_test)
 
@@ -353,7 +362,7 @@ def multi_layer_perceptron(X_train, x_test, Y_train, y_test, momentum, learning_
     predictions = mlp.predict(X_test)
 
     print(classification_report(y_test, predictions))
-    print("Matriz de confusión ", confusion_matrix(y_test, predictions))
+    #print("Matriz de confusión ", confusion_matrix(y_test, predictions))
 
     return metrics.accuracy_score(y_test, predictions)
 
